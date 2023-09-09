@@ -1,7 +1,12 @@
 # -*- coding: UTF-8 -*-
 import os
+from configparser import ConfigParser
 from flask import Flask, request, g
 import requests
+
+config = ConfigParser()
+config.read(os.path.join("conf", "mirror.conf"), encoding="UTF-8")
+wxwork_url = config.get("wxwork", "url", fallback="http://127.0.0.1:9080")
 
 app = Flask("mirror")
 app.logger.setLevel("INFO")
@@ -28,7 +33,7 @@ def plugins_process():
     )
     msg = f"====== Info ======\n\nPath: /plugins/process\nFile: {request.form['filename']}\nComment: 已开始本地更新，可关闭工具并等待Nessus自动重启"
     requests.post(
-        "http://127.0.0.1:9080/message/send/nessus", json={"to": g.user, "content": msg}
+        f"{wxwork_url}/message/send/nessus", json={"to": g.user, "content": msg}
     )
     return ""
 
@@ -49,7 +54,7 @@ def file_upload():
         app.logger.info('saving "all-2.0.tar.gz"')
         request.files["Filedata"].save(os.path.join("storage", "all-2.0.tar.gz"))
     requests.post(
-        "http://127.0.0.1:9080/message/send/nessus", json={"to": g.user, "content": msg}
+        f"{wxwork_url}/message/send/nessus", json={"to": g.user, "content": msg}
     )
     return ""
 
